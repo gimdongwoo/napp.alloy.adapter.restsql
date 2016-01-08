@@ -1,5 +1,30 @@
 napp.alloy.adapter.restsql
 ==========================
+## Different from Original
+Return values support to Object type
+
+```
+// create list of rows returned from query
+_.times(fc, function(c) {
+	var fn = rs.fieldName(c);
+	var text = rs.fieldByName(fn);
+	o[fn] = text;
+	if (text && _.isString(text)) {
+		if (/^[\],:{}\s]*$/.test(text.replace(/\\["\\\/bfnrtu]/g, '@').
+			replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+			replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+			//the json is ok
+			try {
+				o[fn] = JSON.parse(text);
+			} catch(e) {
+				//
+			}
+		}
+	}
+});
+values.push(o);
+```
+
 
 ## Description
 
