@@ -1,30 +1,30 @@
 napp.alloy.adapter.restsql
 ==========================
+
 ## Different from Original
 Return values support to Object type
 
 ```
 // create list of rows returned from query
 _.times(fc, function(c) {
-	var fn = rs.fieldName(c);
-	var text = rs.fieldByName(fn);
-	o[fn] = text;
-	if (text && _.isString(text)) {
-		if (/^[\],:{}\s]*$/.test(text.replace(/\\["\\\/bfnrtu]/g, '@').
-			replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
-			replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
-			//the json is ok
-			try {
-				o[fn] = JSON.parse(text);
-			} catch(e) {
-				//
-			}
-		}
-	}
+var fn = rs.fieldName(c);
+var text = rs.fieldByName(fn);
+o[fn] = text;
+if (text && _.isString(text)) {
+if (/^[\],:{}\s]*$/.test(text.replace(/\\["\\\/bfnrtu]/g, '@').
+replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+//the json is ok
+try {
+o[fn] = JSON.parse(text);
+} catch(e) {
+//
+}
+}
+}
 });
 values.push(o);
 ```
-
 
 ## Description
 
@@ -65,45 +65,45 @@ This will install the library in `PROJECT_FOLDER/app/vendor/alloy/sync`. Vendor 
 
 Simple add the following to your model in `PROJECT_FOLDER/app/models/`.
 
-	exports.definition = {
-		config : {
-			"columns": {
-				"id":"INTEGER PRIMARY KEY",
-				"title":"text",
-				"modified":"text"
-			},
-			"URL": "http://urlPathToRestAPIServer.com/api/modelname",
-			"debug": 1, //debug mode enabled
-			"useStrictValidation":1, // validates each item if all columns are present
-			"adapter" : {
-				"type" : "sqlrest",
-				"collection_name" : "modelname",
-				"idAttribute" : "id",
-				"deletedAttribute": "my_custom_deleted_variable",
-				
-				// optimise the amount of data transfer from remote server to app
-				"addModifedToUrl": true,
-				"lastModifiedColumn": "modified"
-			},
-			
-			//optional
-			"headers": { //your custom headers
-	            "Accept": "application/vnd.stackmob+json; version=0",
-		        "X-StackMob-API-Key": "your-stackmob-key"
-	        },
-	        
-	        // delete all models on fetch
-			"deleteAllOnFetch": true
-		},
-		extendModel : function(Model) {
-			_.extend(Model.prototype, {});
-			return Model;
-		},
-		extendCollection : function(Collection) {
-			_.extend(Collection.prototype, {});
-			return Collection;
-		}
-	}
+exports.definition = {
+config : {
+"columns": {
+"id":"INTEGER PRIMARY KEY",
+"title":"text",
+"modified":"text"
+},
+"URL": "http://urlPathToRestAPIServer.com/api/modelname",
+"debug": 1, //debug mode enabled
+"useStrictValidation":1, // validates each item if all columns are present
+"adapter" : {
+"type" : "sqlrest",
+"collection_name" : "modelname",
+"idAttribute" : "id",
+"deletedAttribute": "my_custom_deleted_variable",
+
+// optimise the amount of data transfer from remote server to app
+"addModifedToUrl": true,
+"lastModifiedColumn": "modified"
+},
+
+//optional
+"headers": { //your custom headers
+"Accept": "application/vnd.stackmob+json; version=0",
+"X-StackMob-API-Key": "your-stackmob-key"
+},
+
+// delete all models on fetch
+"deleteAllOnFetch": true
+},
+extendModel : function(Model) {
+_.extend(Model.prototype, {});
+return Model;
+},
+extendCollection : function(Collection) {
+_.extend(Collection.prototype, {});
+return Collection;
+}
+}
 
 Then add the `sqlrest.js` to `PROJECT_FOLDER/app/assets/alloy/sync/`. Create the folders if they dont exist. 
 
@@ -117,30 +117,30 @@ If you plan on storing a field call `id` in your database table that maps to you
 
 Change the url dynamically by using {} e.g. `{album_id}`.
 
-	exports.definition = {
-	    config : {
-	        "URL": "http://urlPathToRestAPIServer.com/api/albums/{album_id}/modelname",
-		}
-	}
+exports.definition = {
+config : {
+"URL": "http://urlPathToRestAPIServer.com/api/albums/{album_id}/modelname",
+}
+}
 
 Use it like this in your controller:
 
-	collection.fetch({
-		requestparams: {
-			album_id: 22
-		}
-	});
-	
+collection.fetch({
+requestparams: {
+album_id: 22
+}
+});
+
 Will result in: http://urlPathToRestAPIServer.com/api/albums/22/modelname
 
 ### Last Modified
 
 Save a timestamp for each model in the database. Use the `lastModifiedColumn` property in the adapter config to send the HTTP Header "Last-Modifed" with the newest timestamp. This is great for improving the amount of data send from the remote server to the app. 
 
-	"adapter" : {
-		...
-		"lastModifiedColumn": "modified"
-	},
+"adapter" : {
+...
+"lastModifiedColumn": "modified"
+},
 
 This is tell the adapter which column to store a timestamp every time a model has been changed. 
 
@@ -148,27 +148,27 @@ This is tell the adapter which column to store a timestamp every time a model ha
 
 Define your own custom headers. E.g. to add a BaaS API
 
-	"headers": {
-		"Accept": "application/vnd.stackmob+json; version=0",
-		"X-StackMob-API-Key": "your-stackmob-key"
-	}
+"headers": {
+"Accept": "application/vnd.stackmob+json; version=0",
+"X-StackMob-API-Key": "your-stackmob-key"
+}
 
 ### Nested Result Objects
 
 Lets say you are a REST API where the results are nested. Like the Twitter search API. It has the found feeds in a results object. 
 Use the `parentNode` to specify which child object you want to parse. 
 
-	config: {
-		...
-		"parentNode" : "results"
-	}
-	
+config: {
+...
+"parentNode" : "results"
+}
+
 It has support for nested objects. 
-	
-	config: {
-		...
-		"parentNode" : "news.domestic"
-	}
+
+config: {
+...
+"parentNode" : "news.domestic"
+}
 
 You can also specify this as a function instead to allow custom parsing the feed. Here is an example: 
 
@@ -176,37 +176,38 @@ You can also specify this as a function instead to allow custom parsing the feed
 http://www.google.com/calendar/feeds/developer-calendar@google.com/public/full?alt=json&orderby=starttime&max-results=15&singleevents=true&sortorder=ascending&futureevents=true
 
 *Custom parsing:*
-			
+
 ```javascript
-parentNode: function (data) {
-	// check if its a collection
-	if (_.isArray(data)) {	
-		var entries = [];
-		_.each(data.feed.entry, function(_entry) {
-			var entry = {};
-	
-			entry.id = _entry.id.$t;
-			entry.startTime = _entry.gd$when[0].startTime;
-			entry.endTime = _entry.gd$when[0].endTime;
-			entry.title = _entry.title.$t;
-			entry.content = _entry.content.$t;
-	
-			entries.push(entry);
-		});
-	
-		return entries;
-	} else {
-		// its a model
-		var _entry = data.feed.entry;
-		
-		var entry = {};
-		entry.id = _entry.id.$t;
-		entry.startTime = _entry.gd$when[0].startTime;
-		entry.endTime = _entry.gd$when[0].endTime;
-		entry.title = _entry.title.$t;
-		entry.content = _entry.content.$t;
-		return entry;
-	}
+parentNode: function (data, options) {
+// check if its a collection
+if (_.isArray(data)) {	
+var entries = [];
+_.each(data.feed.entry, function(_entry) {
+var entry = {};
+
+entry.id = _entry.id.$t;
+entry.startTime = _entry.gd$when[0].startTime;
+entry.endTime = _entry.gd$when[0].endTime;
+entry.title = _entry.title.$t;
+entry.content = _entry.content.$t;
+entry.myCustomPropertyFromFetchOpts = options.query
+
+entries.push(entry);
+});
+
+return entries;
+} else {
+// its a model
+var _entry = data.feed.entry;
+
+var entry = {};
+entry.id = _entry.id.$t;
+entry.startTime = _entry.gd$when[0].startTime;
+entry.endTime = _entry.gd$when[0].endTime;
+entry.title = _entry.title.$t;
+entry.content = _entry.content.$t;
+return entry;
+}
 }
 ```
 
@@ -216,11 +217,11 @@ parentNode: function (data) {
 Some times its important for the app to have some certainty that the data provided by the database is valid and does not contain null data. 
 useStrictValidation runs through the fetch response data and only allow the items which have all columns in the object to be saved to the database.
 
-	config: {
-		...
-		"useStrictValidation":1
-	}
- 
+config: {
+...
+"useStrictValidation":1
+}
+
 
 ### localOnly
 
@@ -228,7 +229,7 @@ If you want to load/save data from the local SQL database, then add the `localOn
 
 ```javascript
 collection.fetch({
-	localOnly:true
+localOnly:true
 });
 ```
 
@@ -240,30 +241,30 @@ Set this property to true, if you want to get the local data immediately, and ge
 *Notice: This will trigger two fetch calls.* 
 
 
-	config: {
-		...
-		"initFetchWithLocalData" : true
-	}
+config: {
+...
+"initFetchWithLocalData" : true
+}
 
 
 ### returnErrorResponse
 
 Set this property to true if you want the error response object from the remote server. Default behaviour is not to return this, but return the data stored locally. 
 
-	config: {
-		...
-		"returnErrorResponse" : true
-	}
+config: {
+...
+"returnErrorResponse" : true
+}
 
 ### disableSaveDataLocallyOnServerError
 
 This property is a way to control what the local sql database should do when the remote server sends back an error of some kind. It could be 401, 404, 500 etc. In these siatuations, sometimes you do not want the adapter to save the data what might be incorrect. 
 Setting this property to true will disable saving data locally when errors occur.
 
-	config: {
-		...
-		"disableSaveDataLocallyOnServerError" : true
-	}
+config: {
+...
+"disableSaveDataLocallyOnServerError" : true
+}
 
 ### Extended SQL interface
 
@@ -272,24 +273,24 @@ Use: *select, where, wherenot, orderBy, limit, offset, union, unionAll, intersec
 
 ```javascript
 collection.fetch({  
-	data: {  
-		language: "English"
-	},  
-	sql: {  
-		where: {  
-			category_id: 2
-		},
-		wherenot: {
-			title: "Hello World"
-		},
-		orderBy:"title",
-		offset:20,
-		limit:20,
-		like: {
-			description: "search query"
-		}
-	},
-	localOnly:true
+data: {  
+language: "English"
+},  
+sql: {  
+where: {  
+category_id: 2
+},
+wherenot: {
+title: "Hello World"
+},
+orderBy:"title",
+offset:20,
+limit:20,
+like: {
+description: "search query"
+}
+},
+localOnly:true
 });
 ```
 
@@ -298,10 +299,10 @@ collection.fetch({
 This feature will only work if your server supports ETags. If you have no idea what this is, then consult your server admin.
 Start be enabling this feature in the model config, like the following:
 
-	config: {
-		...
-		"eTagEnabled" : true
-	}
+config: {
+...
+"eTagEnabled" : true
+}
 
 You do not have to do anything more. The adapter will send and recieve the ETag for every single request and store those locally in the Ti.App.Properties namespace. 
 
@@ -318,20 +319,20 @@ Adds more indexes to the database table, primary key is already an index.
 Both one column index and multiple column index are supported.
 Thanks to @moshemarciano for this feature.
 
-	migration.up = function(db) {
-		db.createTable({
-	        columns: {
-	            id: 'INTEGER PRIMARY KEY',
-	            time: 'TEXT'
-	        }
-		});
-		
-		// the new stuff
-		db.createIndex({
-			'firstIdx' : ['id', 'time'],   
-		   	'timeIdx' : 'time'
-		});
-	};
+migration.up = function(db) {
+db.createTable({
+columns: {
+id: 'INTEGER PRIMARY KEY',
+time: 'TEXT'
+}
+});
+
+// the new stuff
+db.createIndex({
+'firstIdx' : ['id', 'time'],   
+'timeIdx' : 'time'
+});
+};
 
 
 
@@ -343,45 +344,48 @@ In the below example - im showing how to use this adapter with [alloy scroll wid
 
 ```xml
 <TableView id="table">
-	<Widget id="is" src="nl.fokkezb.infiniteScroll" onEnd="infiniteCallback" />
+<Widget id="is" src="nl.fokkezb.infiniteScroll" onEnd="infiniteCallback" />
 </TableView>
 ```
 
 
 ```javascript
 function infiniteCallback(e) {	
-	// get length before fetch
-	var ln = library.models.length;
-	collection..fetch({
-		// add to url params
-		// result in e.g. example.com/todo?offset=0&limit=20
-		urlparams : {
-			limit : 20, // load 20 each iteration
-			offset : ln
-		},
+// get length before fetch
+var ln = library.models.length;
+collection..fetch({
+// add to url params
+// result in e.g. example.com/todo?offset=0&limit=20
+urlparams : {
+limit : 20, // load 20 each iteration
+offset : ln
+},
 
-		// Add to the collection - Don't reset it
-		add : true,
-		
-		// lets keep the fetching under the radar
-		silent : true,
+// Add to the collection - Don't reset it
+add : true,
 
-		// return the exact results - so exact results
-		returnExactServerResponse: true,
-		
-		// success callback
-		success : function(col) {
-			// if no new models have been added - lets call done.
-			(col.models.length === ln) ? e.done() : e.success();
-		},
-		
-		// error callback
-		error : e.error
-	});
+// lets keep the fetching under the radar
+silent : true,
+
+// return the exact results - so exact results
+returnExactServerResponse: true,
+
+// success callback
+success : function(col) {
+// if no new models have been added - lets call done.
+(col.models.length === ln) ? e.done() : e.success();
+},
+
+// error callback
+error : e.error
+});
 }
 ```
 
 ## Changelog
+
+**v0.3.5** 
+Pass fetch options paramter to `parentNode` function
 
 **v0.3.4** 
 Using defer(underscore.js) at saveData() for prevent block event, and transaction more efficient. Keeping App Responsive.
@@ -417,9 +421,9 @@ Added support for debug mode in a specific adapter call. This is handle if you o
 Do the following:
 
 ```javascript
-	collection..fetch({
-		debug: true
-	});
+collection..fetch({
+debug: true
+});
 ```
 
 **v0.2.3**   
@@ -569,22 +573,22 @@ twitter: @nappdev
 
 ## License
 
-    Copyright (c) 2010-2013 Mads Møller
+Copyright (c) 2010-2013 Mads Møller
 
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
